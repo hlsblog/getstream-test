@@ -1294,7 +1294,7 @@
             
             // 更新关注数量
             const followingCount = document.getElementById('followingCount');
-            const total = data.total || 0;
+            const total = data.count || 0;
             feedCount.textContent = `(${total} 个关注)`;
             followingCount.textContent = total;
 
@@ -1550,9 +1550,17 @@
                     if (action === 'follow') {
                         followingUsers.add(targetUserId);
                         showMessage(`已关注 ${targetUserId}`, 'success');
+                        // 更新关注数量
+                        const followingCount = document.getElementById('followingCount');
+                        const currentCount = parseInt(followingCount.textContent) || 0;
+                        followingCount.textContent = currentCount + 1;
                     } else {
                         followingUsers.delete(targetUserId);
                         showMessage(`已取消关注 ${targetUserId}`, 'success');
+                        // 更新关注数量
+                        const followingCount = document.getElementById('followingCount');
+                        const currentCount = parseInt(followingCount.textContent) || 0;
+                        followingCount.textContent = Math.max(0, currentCount - 1);
                     }
                     
                     // 同步更新页面上所有该用户的关注按钮
@@ -1661,6 +1669,13 @@
                         const userId = typeof followInfo === 'string' ? followInfo : followInfo.userId;
                         followingUsers.add(userId);
                     });
+                    
+                    // 更新页面上的关注数量显示
+                    const followingCount = document.getElementById('followingCount');
+                    if (followingCount) {
+                        followingCount.textContent = result.data.count || result.data.following.length;
+                    }
+                    
                     console.log(`已加载关注列表: ${result.data.following.length} 个用户`);
                 }
             } catch (error) {

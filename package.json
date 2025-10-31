@@ -7,7 +7,7 @@
     "foryou": "ts-node foryou-example.ts",
     "server": "ts-node server.ts",
     "web": "ts-node server.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r public dist/",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Feeds - 用户界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .user-setup {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .user-setup h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+            min-width: 80px;
+        }
+
+        .input-group input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .feed-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .feed-tab {
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .feed-tab.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .feed-tab:hover:not(.active) {
+            border-color: #4facfe;
+            background: #f8f9fa;
+        }
+
+        .post-form {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid #eee;
+        }
+
+        .post-form h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .post-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .feed-content {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .feed-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .feed-header h3 {
+            color: #333;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+
+        .feed-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .feed-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .feed-item {
+            padding: 20px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s;
+        }
+
+        .feed-item:hover {
+            background: #f8f9fa;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-item-content {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .feed-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .feed-item-type {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .feed-item-time {
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 25px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-top: 2px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .user-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+
+        .user-info strong {
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .user-setup, .main-content {
+                padding: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group label {
+                min-width: auto;
+            }
+
+            .feed-controls {
+                flex-direction: column;
+            }
+
+            .post-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* 用户信息和关注按钮样式 */
+        .feed-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .follow-btn {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+
+        .follow-btn.follow {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        .follow-btn.follow:hover {
+            background-color: #1565c0;
+            transform: translateY(-1px);
+        }
+
+        .follow-btn.unfollow {
+            background-color: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .follow-btn.unfollow:hover {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        .bookmark-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bookmark-btn.bookmark {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .bookmark-btn.bookmark:hover {
+            background-color: #f57c00;
+            transform: translateY(-1px);
+        }
+
+        .bookmark-btn.bookmarked {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .bookmark-btn.bookmarked:hover {
+            background-color: #388e3c;
+            transform: translateY(-1px);
+        }
+
+        .like-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .like-btn.like {
+            background-color: #e91e63;
+            color: white;
+        }
+
+        .like-btn.like:hover {
+            background-color: #c2185b;
+            transform: translateY(-1px);
+        }
+
+        .like-btn.liked {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .like-btn.liked:hover {
+            background-color: #d32f2f;
+            transform: translateY(-1px);
+        }
+
+        .feed-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .follow-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 分页控件样式 */
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+            margin-top: 10px;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .pagination-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            min-width: 80px;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .pagination-btn:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+            border-color: #e0e0e0;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .pagination-controls {
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .pagination-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+                min-width: 70px;
+            }
+        }
+
+        /* 评论相关样式 */
+        .comment-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .comment-btn:hover {
+            background: #f0f0f0;
+            border-color: #ccc;
+        }
+
+        .comments-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .comment-form {
+            margin-bottom: 15px;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 10px;
+            transition: border-color 0.3s;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
+        }
+
+        .comment-submit-btn {
+            padding: 8px 16px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .comment-submit-btn:hover {
+            background: #3d8bfe;
+        }
+
+        .comment-submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .comments-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .comment-content {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .comment-like-btn {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .comment-like-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .comment-like-btn.liked {
+            background: #ffe6e6;
+            color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .comment-delete-btn {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #999;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .comment-delete-btn:hover {
+            background: #ffe6e6;
+            color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .loading-comments {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        .no-comments {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding: 20px;
+        }
+
+        /* 关注列表样式 */
+        .following-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .following-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #007bff;
+        }
+
+        .following-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .following-user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .following-user-details {
+            flex: 1;
+        }
+
+        .following-user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .following-user-id {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .following-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .unfollow-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .unfollow-btn:hover {
+            background: #c82333;
+        }
+
+        .no-following {
+            text-align: center;
+            color: #999;
+            font-size: 16px;
+            padding: 40px 20px;
+        }
+
+        .no-following svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Stream Feeds</h1>
+            <p>用户Feed和ForYou推荐管理界面</p>
+        </div>
+
+        <div class="user-setup">
+            <h2>👤 用户设置</h2>
+            <div class="input-group">
+                <label for="userIdInput">用户ID:</label>
+                <input type="text" id="userIdInput" placeholder="请输入用户ID (例如: user123)" value="">
+                <button class="btn btn-primary" onclick="setUserId()">设置用户</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="userInfo" class="user-info" style="display: none;">
+                <strong>当前用户:</strong> <span id="currentUserId"></span>
+            </div>
+
+            <div id="messageArea"></div>
+
+            <div class="feed-controls">
+                <div class="feed-tab active" data-feed="user" onclick="switchFeed('user')">
+                    📝 用户Feed (user:<span class="user-id-display"></span>)
+                </div>
+                <div class="feed-tab" data-feed="foryou" onclick="switchFeed('foryou')">
+                    🌟 推荐Feed (foryou:<span class="user-id-display"></span>)
+                </div>
+                <div class="feed-tab" data-feed="activities" onclick="switchFeed('activities')">
+                    🌍 全局活动 (activities)
+                </div>
+                <div class="feed-tab" data-feed="bookmarks" onclick="switchFeed('bookmarks')">
+                    ⭐ 我的收藏 (<span id="bookmarkCount">0</span>)
+                </div>
+                <div class="feed-tab" data-feed="following" onclick="switchFeed('following')">
+                    👥 我的关注 (<span id="followingCount">0</span>)
+                </div>
+                <button class="btn btn-secondary" onclick="refreshCurrentFeed()">🔄 刷新</button>
+            </div>
+
+            <div class="post-form">
+                <h3>📝 发布新内容</h3>
+                <div class="form-group">
+                    <label for="postContent">内容:</label>
+                    <textarea id="postContent" placeholder="请输入要发布的内容..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="postTarget">发布目标:</label>
+                    <select id="postTarget">
+                        <option value="user">仅用户Feed</option>
+                        <option value="foryou">仅ForYou推荐</option>
+                        <option value="both">同时发布到两者</option>
+                    </select>
+                </div>
+                <div class="post-buttons">
+                    <button class="btn btn-primary" onclick="publishPost()">📤 发布内容</button>
+                    <button class="btn btn-secondary" onclick="clearPostForm()">🗑️ 清空</button>
+                </div>
+            </div>
+
+            <div class="feed-content">
+                <div class="feed-header">
+                    <h3 id="feedTitle">📝 用户Feed</h3>
+                    <div class="feed-info">
+                        <span id="feedInfo">显示用户的个人动态</span>
+                        <span id="feedCount"></span>
+                    </div>
+                </div>
+                <div id="feedList" class="feed-list">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <p>请先设置用户ID来查看内容</p>
+                    </div>
+                </div>
+                
+                <!-- 分页控件 -->
+                <div id="paginationControls" class="pagination-controls" style="display: none;">
+                    <button id="prevPageBtn" class="pagination-btn" onclick="loadPreviousPage()" disabled>
+                        ← 上一页
+                    </button>
+                    <span class="pagination-info">
+                        <span id="pageInfo">第 1 页</span>
+                    </span>
+                    <button id="nextPageBtn" class="pagination-btn" onclick="loadNextPage()" disabled>
+                        下一页 →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = '';
+        let currentFeed = 'user';
+        
+        // 分页相关变量
+        let currentPagination = {
+            next: null,
+            prev: null,
+            hasNext: false,
+            hasPrev: false
+        };
+        let currentPageNumber = 1;
+        
+        // 关注状态管理
+        const followingUsers = new Set(); // 存储当前用户关注的用户列表
+        
+        // 收藏状态管理
+        const bookmarkedActivities = new Set(); // 存储当前用户收藏的活动ID列表
+        
+        // 点赞状态管理
+        const likedActivities = new Set(); // 存储当前用户点赞的活动ID列表
+        const activityLikeCounts = new Map(); // 存储每个活动的点赞数量
+
+        // 带超时的fetch函数（20秒超时）
+        async function fetchWithTimeout(url, options = {}) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('请求超时（20秒），请检查网络连接或稍后重试');
+                }
+                throw error;
+            }
+        }
+
+        // 设置用户ID
+        async function setUserId() {
+            const userIdInput = document.getElementById('userIdInput');
+            const userId = userIdInput.value.trim();
+            
+            if (!userId) {
+                showMessage('请输入有效的用户ID', 'error');
+                return;
+            }
+
+            try {
+                showMessage('正在连接用户...', 'loading');
+                
+                // 如果当前有用户连接且不是同一个用户，先断开连接
+                if (currentUserId && currentUserId !== userId) {
+                    try {
+                        await fetchWithTimeout('/api/user/disconnect', { method: 'POST' });
+                        console.log('已断开之前的用户连接');
+                    } catch (error) {
+                        console.warn('断开之前连接时出现警告:', error);
+                    }
+                }
+                
+                // 验证用户连接
+                const response = await fetchWithTimeout(`/api/user/${userId}/info`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentUserId = userId;
+                    document.getElementById('currentUserId').textContent = userId;
+                    document.getElementById('userInfo').style.display = 'block';
+                    
+                    // 更新所有用户ID显示
+                    document.querySelectorAll('.user-id-display').forEach(el => {
+                        el.textContent = userId;
+                    });
+                    
+                    showMessage(`用户 ${userId} 连接成功！`, 'success');
+                    
+                    // 加载用户关注列表
+                    await loadFollowingList();
+                    
+                    // 加载用户收藏列表
+                    await loadBookmarksList();
+                    
+                    // 自动加载当前feed
+                    await loadFeed(currentFeed);
+                } else {
+                    throw new Error(result.message || '用户连接失败');
+                }
+            } catch (error) {
+                console.error('设置用户ID失败:', error);
+                showMessage(`设置用户失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 切换Feed类型
+        async function switchFeed(feedType) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            currentFeed = feedType;
+            
+            // 更新标签状态
+            document.querySelectorAll('.feed-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-feed="${feedType}"]`).classList.add('active');
+            
+            // 更新标题和信息
+            const titles = {
+                user: '📝 用户Feed',
+                foryou: '🌟 推荐Feed',
+                activities: '🌍 全局活动',
+                bookmarks: '⭐ 我的收藏',
+                following: '👥 我的关注'
+            };
+            const infos = {
+                user: '显示用户的个人动态',
+                foryou: '显示个性化推荐内容',
+                activities: '显示全局所有用户的活动',
+                bookmarks: '显示我收藏的所有活动',
+                following: '显示我关注的所有用户'
+            };
+            
+            document.getElementById('feedTitle').textContent = titles[feedType];
+            document.getElementById('feedInfo').textContent = infos[feedType];
+            
+            // 控制发布表单的显示/隐藏
+            const postForm = document.querySelector('.post-form');
+            if (feedType === 'activities' || feedType === 'bookmarks' || feedType === 'following') {
+                postForm.style.display = 'none';
+            } else {
+                postForm.style.display = 'block';
+            }
+            
+            // 重置分页状态
+            resetPagination();
+            
+            await loadFeed(feedType);
+        }
+
+        // 加载Feed内容
+        async function loadFeed(feedType, paginationParams = {}) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            const feedList = document.getElementById('feedList');
+            feedList.innerHTML = '<div class="loading">正在加载内容...</div>';
+
+            try {
+                // 构建查询参数
+                const queryParams = new URLSearchParams({
+                    limit: '10'
+                });
+                
+                if (paginationParams.next) {
+                    queryParams.append('next', paginationParams.next);
+                } else if (paginationParams.prev) {
+                    queryParams.append('prev', paginationParams.prev);
+                }
+
+                let response;
+                if (feedType === 'activities') {
+                    // 全局活动使用不同的API端点
+                    response = await fetchWithTimeout(`/api/activities/${currentUserId}?${queryParams}`);
+                } else if (feedType === 'bookmarks') {
+                    // 收藏列表使用收藏API端点
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/bookmarks?${queryParams}`);
+                } else if (feedType === 'following') {
+                    // 关注列表使用关注API端点
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/following?${queryParams}`);
+                } else {
+                    // 用户feed和foryou feed使用原有的API端点
+                    response = await fetchWithTimeout(`/api/feeds/${feedType}/${currentUserId}?${queryParams}`);
+                }
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新分页信息
+                    if (result.data.pagination) {
+                        currentPagination = result.data.pagination;
+                        updatePaginationControls();
+                    }
+                    
+                    displayFeedContent(result.data);
+                } else {
+                    throw new Error(result.message || '加载失败');
+                }
+            } catch (error) {
+                console.error('加载Feed失败:', error);
+                feedList.innerHTML = `
+                    <div class="error">
+                        <strong>加载失败:</strong> ${error.message}
+                    </div>
+                `;
+                // 隐藏分页控件
+                document.getElementById('paginationControls').style.display = 'none';
+            }
+        }
+
+        // 显示Feed内容
+        function displayFeedContent(data) {
+            const feedList = document.getElementById('feedList');
+            const feedCount = document.getElementById('feedCount');
+            
+            // 特殊处理关注列表
+            if (currentFeed === 'following') {
+                displayFollowingList(data);
+                return;
+            }
+            
+            feedCount.textContent = `(${data.total} 条内容)`;
+
+            if (!data.activities || data.activities.length === 0) {
+                feedList.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                        </svg>
+                        <p>暂无内容，快来发布第一条动态吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const feedItems = data.activities.map(activity => {
+                const time = new Date(activity.created_at).toLocaleString('zh-CN');
+                const actorId = activity.user.id || 'unknown';
+                const isCurrentUser = actorId === currentUserId;
+                
+                // 生成用户头像字母（取用户ID的第一个字符）
+                const avatarLetter = actorId.charAt(0).toUpperCase();
+                
+                // 检查关注状态
+                const isFollowing = followingUsers.has(actorId);
+                const followBtnClass = isFollowing ? 'unfollow' : 'follow';
+                const followBtnText = isFollowing ? '取消关注' : '关注';
+                
+                // 检查收藏状态
+                const isBookmarked = bookmarkedActivities.has(activity.id);
+                const bookmarkBtnClass = isBookmarked ? 'bookmarked' : 'bookmark';
+                const bookmarkBtnText = isBookmarked ? '⭐ 已收藏' : '☆ 收藏';
+                
+                // 检查点赞状态
+                const isLiked = likedActivities.has(activity.id);
+                const likeBtnClass = isLiked ? 'liked' : 'like';
+                const likeBtnText = isLiked ? '❤️ 已点赞' : '🤍 点赞';
+                const likeCount = activityLikeCounts.get(activity.id) || 0;
+                
+                return `
+                    <div class="feed-item" data-activity-id="${activity.id}">
+                        <div class="feed-item-header">
+                            <div class="user-info">
+                                <div class="user-avatar">${avatarLetter}</div>
+                                <span class="user-name">${actorId}</span>
+                            </div>
+                            ${!isCurrentUser ? `
+                                <button class="follow-btn ${followBtnClass}" 
+                                        data-user-id="${actorId}" 
+                                        onclick="toggleFollow('${actorId}', this)">
+                                    ${followBtnText}
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div class="feed-item-content">${activity.text || '无文本内容'}</div>
+                        <div class="feed-item-meta">
+                            <span class="feed-item-type">${activity.type || 'post'}</span>
+                            <span class="feed-item-time">${time}</span>
+                        </div>
+                        <div class="feed-item-actions">
+                            <button class="like-btn ${likeBtnClass}" 
+                                    onclick="toggleLike('${activity.id}', this)">
+                                ${likeBtnText} ${likeCount > 0 ? `(${likeCount})` : ''}
+                            </button>
+                            <button class="bookmark-btn ${bookmarkBtnClass}" 
+                                    onclick="toggleBookmark('${activity.id}', this)">
+                                ${bookmarkBtnText}
+                            </button>
+                            <button class="comment-btn" onclick="toggleComments('${activity.id}')">
+                                💬 评论
+                            </button>
+                        </div>
+                        <div class="comments-section" id="comments-${activity.id}" style="display: block;">
+                            <div class="comment-form">
+                                <textarea class="comment-input" placeholder="写下你的评论..." rows="2"></textarea>
+                                <button class="comment-submit-btn" onclick="submitComment('${activity.id}')">发表评论</button>
+                            </div>
+                            <div class="comments-list" id="comments-list-${activity.id}">
+                                <div class="loading-comments">正在加载评论...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            feedList.innerHTML = feedItems;
+            
+            // 确保所有关注按钮状态正确
+            if (data.activities && data.activities.length > 0) {
+                // 获取页面上所有用户ID，并同步其关注状态
+                const uniqueUserIds = [...new Set(data.activities.map(activity => activity.user.id || 'unknown'))];
+                uniqueUserIds.forEach(userId => {
+                    if (userId !== currentUserId && userId !== 'unknown') {
+                        const isFollowing = followingUsers.has(userId);
+                        syncFollowButtonsForUser(userId, isFollowing);
+                    }
+                });
+                
+                // 确保所有收藏按钮状态正确
+                data.activities.forEach(activity => {
+                    const isBookmarked = bookmarkedActivities.has(activity.id);
+                    syncBookmarkButtonForActivity(activity.id, isBookmarked);
+                });
+                
+                // 加载并同步所有点赞状态
+                loadLikeStatesForActivities(data.activities).then(() => {
+                    // 确保所有点赞按钮状态正确
+                    data.activities.forEach(activity => {
+                        const isLiked = likedActivities.has(activity.id);
+                        syncLikeButtonForActivity(activity.id, isLiked);
+                    });
+                });
+                
+                // 自动加载所有活动的评论（因为评论区域默认展开）
+                data.activities.forEach(activity => {
+                    loadComments(activity.id);
+                });
+            }
+            
+            // 显示分页控件（如果有内容）
+            const paginationControls = document.getElementById('paginationControls');
+            if (data.activities && data.activities.length > 0) {
+                paginationControls.style.display = 'flex';
+            } else {
+                paginationControls.style.display = 'none';
+            }
+        }
+
+        // 显示关注列表
+        function displayFollowingList(data) {
+            const feedList = document.getElementById('feedList');
+            const feedCount = document.getElementById('feedCount');
+            
+            // 更新关注数量
+            const followingCount = document.getElementById('followingCount');
+            const total = data.total || 0;
+            feedCount.textContent = `(${total} 个关注)`;
+            followingCount.textContent = total;
+
+            if (!data.following || data.following.length === 0) {
+                feedList.innerHTML = `
+                    <div class="no-following">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2 .97L11.58 11H7c-.8 0-1.54.37-2 .97L2.54 14.37A1.5 1.5 0 0 0 1.12 16H3.5v6h2v-6h2.12l2.5-2.5H12l2.38 2.5H16.5v6h2zm-6.5-10.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/>
+                        </svg>
+                        <p>您还没有关注任何用户</p>
+                        <p>去发现一些有趣的用户吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const followingItems = data.following.map(user => {
+                const avatarLetter = user.userId ? user.userId.charAt(0).toUpperCase() : 'U';
+                
+                return `
+                    <div class="following-item" data-user-id="${user.userId}">
+                        <div class="following-user-info">
+                            <div class="following-user-avatar">${avatarLetter}</div>
+                            <div class="following-user-details">
+                                <div class="following-user-name">${user.userId}</div>
+                                <div class="following-user-id">@${user.userId}</div>
+                            </div>
+                        </div>
+                        <div class="following-actions">
+                            <button class="unfollow-btn" onclick="unfollowUser('${user.userId}')">
+                                取消关注
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            feedList.innerHTML = followingItems;
+            
+            // 隐藏分页控件（关注列表暂不支持分页）
+            const paginationControls = document.getElementById('paginationControls');
+            paginationControls.style.display = 'none';
+        }
+
+        // 发布内容
+        async function publishPost() {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            const content = document.getElementById('postContent').value.trim();
+            const target = document.getElementById('postTarget').value;
+
+            if (!content) {
+                showMessage('请输入要发布的内容', 'error');
+                return;
+            }
+
+            try {
+                showMessage('正在发布内容...', 'loading');
+
+                const response = await fetchWithTimeout(`/api/feeds/${target}/${currentUserId}/post`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: content,
+                        type: target === 'foryou' ? 'recommendation' : 'post'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('内容发布成功！', 'success');
+                    clearPostForm();
+                    
+                    // 刷新当前显示的feed
+                    await loadFeed(currentFeed);
+                } else {
+                    throw new Error(result.message || '发布失败');
+                }
+            } catch (error) {
+                console.error('发布失败:', error);
+                showMessage(`发布失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 清空发布表单
+        function clearPostForm() {
+            document.getElementById('postContent').value = '';
+            document.getElementById('postTarget').value = 'user';
+        }
+
+        // 刷新当前Feed
+        async function refreshCurrentFeed() {
+            if (currentUserId && currentFeed) {
+                await loadFeed(currentFeed);
+                showMessage('内容已刷新', 'success');
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            
+            if (type === 'loading') {
+                messageArea.innerHTML = `<div class="loading">${message}</div>`;
+                return;
+            }
+            
+            const className = type === 'error' ? 'error' : 'success';
+            messageArea.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            // 3秒后自动清除消息
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
+        }
+
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认用户ID（如果有的话）
+            const defaultUserId = 'user123';
+            document.getElementById('userIdInput').value = defaultUserId;
+            
+            console.log('🚀 Stream Feeds 界面已加载');
+            console.log('💡 提示: 请设置用户ID开始使用');
+        });
+
+        // 回车键快捷操作
+        document.getElementById('userIdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setUserId();
+            }
+        });
+
+        document.getElementById('postContent').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                publishPost();
+            }
+        });
+
+        // 分页相关函数
+        function updatePaginationControls() {
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+            const pageInfo = document.getElementById('pageInfo');
+            
+            // 更新按钮状态
+            prevBtn.disabled = !currentPagination.hasPrev;
+            nextBtn.disabled = !currentPagination.hasNext;
+            
+            // 更新页面信息
+            pageInfo.textContent = `第 ${currentPageNumber} 页`;
+        }
+
+        // 加载下一页
+        async function loadNextPage() {
+            if (!currentPagination.hasNext || !currentPagination.next) {
+                return;
+            }
+            
+            currentPageNumber++;
+            await loadFeed(currentFeed, { next: currentPagination.next });
+        }
+
+        // 加载上一页
+        async function loadPreviousPage() {
+            if (!currentPagination.hasPrev || !currentPagination.prev) {
+                return;
+            }
+            
+            currentPageNumber = Math.max(1, currentPageNumber - 1);
+            await loadFeed(currentFeed, { prev: currentPagination.prev });
+        }
+
+        // 重置分页状态（切换feed类型时调用）
+        function resetPagination() {
+            currentPagination = {
+                next: null,
+                prev: null,
+                hasNext: false,
+                hasPrev: false
+            };
+            currentPageNumber = 1;
+            document.getElementById('paginationControls').style.display = 'none';
+        }
+
+        // 同步更新页面上所有指定用户的关注按钮状态
+        function syncFollowButtonsForUser(userId, isFollowing) {
+            // 查找页面上所有该用户的关注按钮
+            const userButtons = document.querySelectorAll(`button.follow-btn[data-user-id="${userId}"]`);
+            
+            userButtons.forEach(button => {
+                if (isFollowing) {
+                    button.className = 'follow-btn unfollow';
+                    button.textContent = '取消关注';
+                } else {
+                    button.className = 'follow-btn follow';
+                    button.textContent = '关注';
+                }
+                // 确保按钮是启用状态
+                button.disabled = false;
+            });
+            
+            console.log(`已同步更新 ${userButtons.length} 个 ${userId} 的关注按钮，状态: ${isFollowing ? '已关注' : '未关注'}`);
+        }
+
+        // 关注/取消关注用户
+        async function toggleFollow(targetUserId, buttonElement) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            if (targetUserId === currentUserId) {
+                showMessage('不能关注自己', 'error');
+                return;
+            }
+
+            const isCurrentlyFollowing = followingUsers.has(targetUserId);
+            const action = isCurrentlyFollowing ? 'unfollow' : 'follow';
+            
+            // 禁用按钮，防止重复点击
+            buttonElement.disabled = true;
+            buttonElement.textContent = '处理中...';
+
+            try {
+                let response;
+                if (action === 'follow') {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/follow/${targetUserId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } else {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/follow/${targetUserId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新本地关注状态
+                    if (action === 'follow') {
+                        followingUsers.add(targetUserId);
+                        showMessage(`已关注 ${targetUserId}`, 'success');
+                    } else {
+                        followingUsers.delete(targetUserId);
+                        showMessage(`已取消关注 ${targetUserId}`, 'success');
+                    }
+                    
+                    // 同步更新页面上所有该用户的关注按钮
+                    syncFollowButtonsForUser(targetUserId, action === 'follow');
+                } else {
+                    showMessage(result.error || '操作失败', 'error');
+                    // 恢复所有该用户按钮的状态
+                    syncFollowButtonsForUser(targetUserId, isCurrentlyFollowing);
+                }
+            } catch (error) {
+                console.error('关注操作失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+                // 恢复所有该用户按钮的状态
+                syncFollowButtonsForUser(targetUserId, isCurrentlyFollowing);
+            }
+        }
+
+        // 取消关注用户（专用于关注列表）
+        async function unfollowUser(targetUserId) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            // 找到对应的按钮元素
+            const followingItem = document.querySelector(`[data-user-id="${targetUserId}"]`);
+            const unfollowBtn = followingItem.querySelector('.unfollow-btn');
+            
+            // 禁用按钮，防止重复点击
+            unfollowBtn.disabled = true;
+            unfollowBtn.textContent = '处理中...';
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/follow/${targetUserId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新本地关注状态
+                    followingUsers.delete(targetUserId);
+                    showMessage(`已取消关注 ${targetUserId}`, 'success');
+                    
+                    // 从关注列表中移除该项
+                    followingItem.remove();
+                    
+                    // 更新关注数量
+                    const followingCount = document.getElementById('followingCount');
+                    const currentCount = parseInt(followingCount.textContent) || 0;
+                    followingCount.textContent = Math.max(0, currentCount - 1);
+                    
+                    // 更新feed计数
+                    const feedCount = document.getElementById('feedCount');
+                    const newCount = Math.max(0, currentCount - 1);
+                    feedCount.textContent = `(${newCount} 个关注)`;
+                    
+                    // 如果没有关注的用户了，显示空状态
+                    const feedList = document.getElementById('feedList');
+                    if (feedList.children.length === 0) {
+                        feedList.innerHTML = `
+                            <div class="no-following">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H16c-.8 0-1.54.37-2 .97L11.58 11H7c-.8 0-1.54.37-2 .97L2.54 14.37A1.5 1.5 0 0 0 1.12 16H3.5v6h2v-6h2.12l2.5-2.5H12l2.38 2.5H16.5v6h2zm-6.5-10.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/>
+                                </svg>
+                                <p>您还没有关注任何用户</p>
+                                <p>去发现一些有趣的用户吧！</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // 同步更新页面上所有该用户的关注按钮
+                    syncFollowButtonsForUser(targetUserId, false);
+                } else {
+                    showMessage(result.error || '取消关注失败', 'error');
+                    // 恢复按钮状态
+                    unfollowBtn.disabled = false;
+                    unfollowBtn.textContent = '取消关注';
+                }
+            } catch (error) {
+                console.error('取消关注失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+                // 恢复按钮状态
+                unfollowBtn.disabled = false;
+                unfollowBtn.textContent = '取消关注';
+            }
+        }
+
+        // 加载用户关注列表
+        async function loadFollowingList() {
+            if (!currentUserId) return;
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/following`);
+                const result = await response.json();
+
+                if (result.success && result.data.following) {
+                    // 清空并重新填充关注列表
+                    followingUsers.clear();
+                    // 适配Stream SDK返回的新数据结构
+                    result.data.following.forEach(followInfo => {
+                        // followInfo现在是对象，包含userId, followedAt, status等字段
+                        const userId = typeof followInfo === 'string' ? followInfo : followInfo.userId;
+                        followingUsers.add(userId);
+                    });
+                    console.log(`已加载关注列表: ${result.data.following.length} 个用户`);
+                }
+            } catch (error) {
+                console.error('加载关注列表失败:', error);
+            }
+        }
+
+        // 检查单个用户的关注状态
+        async function checkFollowStatus(targetUserId) {
+            if (!currentUserId || targetUserId === currentUserId) return false;
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/follow/${targetUserId}/status`);
+                const result = await response.json();
+
+                if (result.success) {
+                    return result.data.isFollowing;
+                }
+            } catch (error) {
+                console.error('检查关注状态失败:', error);
+            }
+            return false;
+        }
+
+        // 收藏/取消收藏活动
+        async function toggleBookmark(activityId, buttonElement) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            const isCurrentlyBookmarked = bookmarkedActivities.has(activityId);
+            const action = isCurrentlyBookmarked ? 'unbookmark' : 'bookmark';
+            
+            // 禁用按钮，防止重复点击
+            buttonElement.disabled = true;
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = '处理中...';
+
+            try {
+                let response;
+                if (action === 'bookmark') {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/bookmark/${activityId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } else {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/bookmark/${activityId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新本地收藏状态
+                    if (action === 'bookmark') {
+                        bookmarkedActivities.add(activityId);
+                        showMessage('已收藏该活动', 'success');
+                    } else {
+                        bookmarkedActivities.delete(activityId);
+                        showMessage('已取消收藏', 'success');
+                    }
+                    
+                    // 更新收藏数量显示
+                    const bookmarkCountElement = document.getElementById('bookmarkCount');
+                    if (bookmarkCountElement) {
+                        bookmarkCountElement.textContent = bookmarkedActivities.size;
+                    }
+                    
+                    // 同步更新页面上该活动的收藏按钮
+                    syncBookmarkButtonForActivity(activityId, action === 'bookmark');
+                    
+                    // 如果当前在收藏列表页面且取消了收藏，刷新页面以移除该项目
+                    if (currentFeed === 'bookmarks' && action === 'unbookmark') {
+                        setTimeout(() => {
+                            loadFeed('bookmarks');
+                        }, 500); // 延迟500ms以确保用户看到成功消息
+                    }
+                } else {
+                    showMessage(result.error || '操作失败', 'error');
+                    // 恢复按钮状态
+                    syncBookmarkButtonForActivity(activityId, isCurrentlyBookmarked);
+                }
+            } catch (error) {
+                console.error('收藏操作失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+                // 恢复按钮状态
+                syncBookmarkButtonForActivity(activityId, isCurrentlyBookmarked);
+            }
+        }
+
+        // 同步单个活动的收藏按钮状态
+        function syncBookmarkButtonForActivity(activityId, isBookmarked) {
+            const buttons = document.querySelectorAll(`[data-activity-id="${activityId}"] .bookmark-btn`);
+            buttons.forEach(button => {
+                button.disabled = false;
+                if (isBookmarked) {
+                    button.className = 'bookmark-btn bookmarked';
+                    button.innerHTML = '⭐ 已收藏';
+                } else {
+                    button.className = 'bookmark-btn bookmark';
+                    button.innerHTML = '☆ 收藏';
+                }
+            });
+            
+            console.log(`已同步更新活动 ${activityId} 的收藏按钮，状态: ${isBookmarked ? '已收藏' : '未收藏'}`);
+        }
+
+        // 加载用户收藏列表
+        async function loadBookmarksList() {
+            if (!currentUserId) return;
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/bookmarks`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // 清空并重新填充收藏列表
+                    bookmarkedActivities.clear();
+                    const activities = result.data.activities || [];
+                    activities.forEach(activity => {
+                        // activity.id 是活动ID
+                        if (activity && activity.id) {
+                            bookmarkedActivities.add(activity.id);
+                        }
+                    });
+                    
+                    // 更新收藏数量显示
+                    const bookmarkCountElement = document.getElementById('bookmarkCount');
+                    if (bookmarkCountElement) {
+                        bookmarkCountElement.textContent = activities.length;
+                    }
+                    
+                    console.log(`已加载收藏列表: ${activities.length} 个活动`);
+                }
+            } catch (error) {
+                console.error('加载收藏列表失败:', error);
+            }
+        }
+
+        // 检查单个活动的收藏状态
+        async function checkBookmarkStatus(activityId) {
+            if (!currentUserId) return false;
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/bookmark/${activityId}/status`);
+                const result = await response.json();
+
+                if (result.success) {
+                    return result.data.isBookmarked;
+                }
+            } catch (error) {
+                console.error('检查收藏状态失败:', error);
+            }
+            return false;
+        }
+
+        // 点赞/取消点赞功能
+        async function toggleLike(activityId, button) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            if (button.disabled) return;
+
+            const isCurrentlyLiked = likedActivities.has(activityId);
+            const action = isCurrentlyLiked ? 'unlike' : 'like';
+
+            // 禁用按钮防止重复点击
+            button.disabled = true;
+
+            try {
+                let response;
+                if (action === 'like') {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/like/${activityId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    });
+                } else {
+                    response = await fetchWithTimeout(`/api/user/${currentUserId}/like/${activityId}`, {
+                        method: 'DELETE'
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新本地点赞状态
+                    if (action === 'like') {
+                        likedActivities.add(activityId);
+                        showMessage('已点赞该活动', 'success');
+                    } else {
+                        likedActivities.delete(activityId);
+                        showMessage('已取消点赞', 'success');
+                    }
+                    
+                    // 更新点赞数量
+                    await updateLikeCount(activityId);
+                    
+                    // 同步更新页面上该活动的点赞按钮
+                    syncLikeButtonForActivity(activityId, action === 'like');
+                } else {
+                    showMessage(result.error || '操作失败', 'error');
+                    // 恢复按钮状态
+                    syncLikeButtonForActivity(activityId, isCurrentlyLiked);
+                }
+            } catch (error) {
+                console.error('点赞操作失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+                // 恢复按钮状态
+                syncLikeButtonForActivity(activityId, isCurrentlyLiked);
+            }
+        }
+
+        // 同步单个活动的点赞按钮状态
+        function syncLikeButtonForActivity(activityId, isLiked) {
+            const buttons = document.querySelectorAll(`[data-activity-id="${activityId}"] .like-btn`);
+            buttons.forEach(button => {
+                button.disabled = false;
+                const likeCount = activityLikeCounts.get(activityId) || 0;
+                if (isLiked) {
+                    button.className = 'like-btn liked';
+                    button.innerHTML = `❤️ 已点赞 ${likeCount > 0 ? `(${likeCount})` : ''}`;
+                } else {
+                    button.className = 'like-btn like';
+                    button.innerHTML = `🤍 点赞 ${likeCount > 0 ? `(${likeCount})` : ''}`;
+                }
+            });
+        }
+
+        // 更新活动的点赞数量
+        async function updateLikeCount(activityId) {
+            try {
+                const response = await fetchWithTimeout(`/api/activity/${activityId}/likes/count`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const likeCount = result.data.likeCount;
+                    activityLikeCounts.set(activityId, likeCount);
+                    
+                    // 更新所有该活动的点赞按钮显示
+                    const isLiked = likedActivities.has(activityId);
+                    syncLikeButtonForActivity(activityId, isLiked);
+                }
+            } catch (error) {
+                console.error('更新点赞数量失败:', error);
+            }
+        }
+
+        // 检查单个活动的点赞状态
+        async function checkLikeStatus(activityId) {
+            if (!currentUserId) return false;
+
+            try {
+                const response = await fetchWithTimeout(`/api/user/${currentUserId}/like/${activityId}/status`);
+                const result = await response.json();
+
+                if (result.success) {
+                    return result.data.isLiked;
+                }
+            } catch (error) {
+                console.error('检查点赞状态失败:', error);
+            }
+            return false;
+        }
+
+        // 加载活动的点赞状态和数量
+        async function loadLikeStatesForActivities(activities) {
+            if (!currentUserId || !activities.length) return;
+
+            try {
+                // 并行检查所有活动的点赞状态
+                const likeStatusPromises = activities.map(async (activity) => {
+                    const [isLiked, likeCountResponse] = await Promise.all([
+                        checkLikeStatus(activity.id),
+                        fetchWithTimeout(`/api/activity/${activity.id}/likes/count`)
+                    ]);
+                    
+                    if (isLiked) {
+                        likedActivities.add(activity.id);
+                    }
+                    
+                    if (likeCountResponse.ok) {
+                        const likeCountResult = await likeCountResponse.json();
+                        if (likeCountResult.success) {
+                            activityLikeCounts.set(activity.id, likeCountResult.data.likeCount);
+                        }
+                    }
+                });
+
+                await Promise.all(likeStatusPromises);
+                console.log(`已加载 ${activities.length} 个活动的点赞状态`);
+            } catch (error) {
+                console.error('加载点赞状态失败:', error);
+            }
+        }
+
+        // ==================== 评论相关功能 ====================
+
+        // 存储评论数据的Map
+        const activityComments = new Map(); // activityId -> comments array
+        const commentLikeStates = new Map(); // commentId -> boolean
+        const commentLikeCounts = new Map(); // commentId -> number
+
+        // 切换评论区域显示/隐藏
+        async function toggleComments(activityId) {
+            const commentsSection = document.getElementById(`comments-${activityId}`);
+            
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+                // 如果评论还没有加载过，则加载评论
+                if (!activityComments.has(activityId)) {
+                    await loadComments(activityId);
+                }
+            } else {
+                commentsSection.style.display = 'none';
+            }
+        }
+
+        // 加载评论列表
+        async function loadComments(activityId) {
+            const commentsList = document.getElementById(`comments-list-${activityId}`);
+            commentsList.innerHTML = '<div class="loading-comments">正在加载评论...</div>';
+
+            try {
+                const response = await fetchWithTimeout(`/api/activity/${activityId}/comments?limit=20`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const comments = result.data.comments || [];
+                    activityComments.set(activityId, comments);
+                    
+                    if (comments.length === 0) {
+                        commentsList.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧！</div>';
+                    } else {
+                        await displayComments(activityId, comments);
+                    }
+                } else {
+                    throw new Error(result.message || '加载评论失败');
+                }
+            } catch (error) {
+                console.error('加载评论失败:', error);
+                commentsList.innerHTML = '<div class="no-comments">加载评论失败，请稍后重试</div>';
+                showMessage(`加载评论失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 显示评论列表
+        async function displayComments(activityId, comments) {
+            const commentsList = document.getElementById(`comments-list-${activityId}`);
+            
+            // 为每个评论加载点赞状态和点赞数
+            await loadCommentLikeStates(comments);
+            await loadCommentLikeCounts(comments);
+            
+            const commentsHtml = comments.map(comment => {
+                const time = new Date(comment.created_at).toLocaleString('zh-CN');
+                const authorId = comment.user?.id || comment.custom?.user_id || 'unknown';
+                const isCurrentUser = authorId === currentUserId;
+                const avatarLetter = authorId.charAt(0).toUpperCase();
+                
+                // 检查评论点赞状态
+                const isLiked = commentLikeStates.get(comment.id) || false;
+                const likeBtnClass = isLiked ? 'liked' : '';
+                const likeBtnText = isLiked ? '❤️' : '🤍';
+                
+                // 获取点赞数
+                const likeCount = commentLikeCounts.get(comment.id) || 0;
+                const likeCountText = likeCount > 0 ? ` (${likeCount})` : '';
+                
+                return `
+                    <div class="comment-item" data-comment-id="${comment.id}">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <span class="user-avatar" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background: #4facfe; color: white; text-align: center; line-height: 20px; font-size: 12px; margin-right: 8px;">${avatarLetter}</span>
+                                ${authorId}
+                            </div>
+                            <div class="comment-time">${time}</div>
+                        </div>
+                        <div class="comment-content">${comment.text || '无内容'}</div>
+                        <div class="comment-actions">
+                            <button class="comment-like-btn ${likeBtnClass}" onclick="toggleCommentLike('${comment.id}', this)">
+                                ${likeBtnText} 点赞${likeCountText}
+                            </button>
+                            ${isCurrentUser ? `
+                                <button class="comment-delete-btn" onclick="deleteComment('${comment.id}', '${activityId}')">
+                                    🗑️ 删除
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            commentsList.innerHTML = commentsHtml;
+        }
+
+        // 提交评论
+        async function submitComment(activityId) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            const commentsSection = document.getElementById(`comments-${activityId}`);
+            const commentInput = commentsSection.querySelector('.comment-input');
+            const submitBtn = commentsSection.querySelector('.comment-submit-btn');
+            const comment = commentInput.value.trim();
+
+            if (!comment) {
+                showMessage('请输入评论内容', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '发表中...';
+
+                const response = await fetchWithTimeout(`/api/activity/${activityId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        comment: comment
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('评论发表成功！', 'success');
+                    commentInput.value = '';
+                    // 重新加载评论列表
+                    await loadComments(activityId);
+                } else {
+                    throw new Error(result.message || '发表评论失败');
+                }
+            } catch (error) {
+                console.error('发表评论失败:', error);
+                showMessage(`发表评论失败: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '发表评论';
+            }
+        }
+
+        // 删除评论
+        async function deleteComment(commentId, activityId) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetchWithTimeout(`/api/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('评论删除成功！', 'success');
+                    // 重新加载评论列表
+                    await loadComments(activityId);
+                } else {
+                    throw new Error(result.message || '删除评论失败');
+                }
+            } catch (error) {
+                console.error('删除评论失败:', error);
+                showMessage(`删除评论失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 评论点赞/取消点赞
+        async function toggleCommentLike(commentId, button) {
+            if (!currentUserId) {
+                showMessage('请先设置用户ID', 'error');
+                return;
+            }
+
+            const isLiked = commentLikeStates.get(commentId) || false;
+            const originalText = button.textContent;
+            
+            try {
+                button.disabled = true;
+                button.textContent = isLiked ? '取消中...' : '点赞中...';
+
+                const url = `/api/user/${currentUserId}/like/comment/${commentId}`;
+                const method = isLiked ? 'DELETE' : 'POST';
+
+                const response = await fetchWithTimeout(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 更新本地状态
+                    commentLikeStates.set(commentId, !isLiked);
+                    
+                    // 更新点赞数
+                    const currentCount = commentLikeCounts.get(commentId) || 0;
+                    const newCount = isLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+                    commentLikeCounts.set(commentId, newCount);
+                    
+                    // 更新按钮样式和文本
+                    const likeCountText = newCount > 0 ? ` (${newCount})` : '';
+                    if (!isLiked) {
+                        button.classList.add('liked');
+                        button.textContent = `❤️ 点赞${likeCountText}`;
+                    } else {
+                        button.classList.remove('liked');
+                        button.textContent = `🤍 点赞${likeCountText}`;
+                    }
+                    
+                    showMessage(isLiked ? '取消点赞成功' : '点赞成功', 'success');
+                } else {
+                    throw new Error(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('评论点赞操作失败:', error);
+                showMessage(`操作失败: ${error.message}`, 'error');
+                button.textContent = originalText;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        // 加载评论的点赞状态
+        async function loadCommentLikeStates(comments) {
+            if (!currentUserId || !comments.length) return;
+
+            try {
+                const likeStatusPromises = comments.map(async (comment) => {
+                    try {
+                        const response = await fetchWithTimeout(`/api/user/${currentUserId}/like/comment/${comment.id}/status`);
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            commentLikeStates.set(comment.id, result.data.isLiked);
+                        }
+                    } catch (error) {
+                        console.error(`检查评论 ${comment.id} 点赞状态失败:`, error);
+                    }
+                });
+
+                await Promise.all(likeStatusPromises);
+                console.log(`已加载 ${comments.length} 条评论的点赞状态`);
+            } catch (error) {
+                console.error('加载评论点赞状态失败:', error);
+            }
+        }
+
+        // 加载评论的点赞数
+        async function loadCommentLikeCounts(comments) {
+            if (!comments.length) return;
+
+            try {
+                const likeCountPromises = comments.map(async (comment) => {
+                    try {
+                        const response = await fetchWithTimeout(`/api/comment/${comment.id}/likes/count`);
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            commentLikeCounts.set(comment.id, result.data.likeCount);
+                        }
+                    } catch (error) {
+                        console.error(`获取评论 ${comment.id} 点赞数失败:`, error);
+                    }
+                });
+
+                await Promise.all(likeCountPromises);
+                console.log(`已加载 ${comments.length} 条评论的点赞数`);
+            } catch (error) {
+                console.error('加载评论点赞数失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { StreamClient } from '@stream-io/node-sdk';
 import jwt from 'jsonwebtoken';
 
 export interface TokenGenerationOptions {
@@ -12,11 +13,11 @@ export interface TokenInfo {
 }
 
 export class StreamTokenProvider {
-  private apiKey: string;
+  private streamClient: StreamClient;
   private apiSecret: string;
 
   constructor(apiKey: string, apiSecret: string) {
-    this.apiKey = apiKey;
+    this.streamClient = new StreamClient(apiKey, apiSecret);
     this.apiSecret = apiSecret;
   }
 
@@ -30,15 +31,13 @@ export class StreamTokenProvider {
     
     console.log(`🔑 正在为用户 ${userId} 生成令牌，有效期: ${validityInSeconds}秒`);
     
-    // 手动生成 JWT 令牌，因为客户端版本的 FeedsClient 不支持服务器端令牌生成
-    const payload = {
-      user_id: userId,
-      iat: Math.floor(Date.now() / 1000), // 签发时间
-      exp: Math.floor(Date.now() / 1000) + validityInSeconds // 过期时间
-    };
+    // 使用 Stream Node SDK 生成令牌
+    const expirationTime = Math.floor(Date.now() / 1000) + validityInSeconds;
+    const token = this.streamClient.generateUserToken({user_id: userId, exp: expirationTime});
     
-    const token = jwt.sign(payload, this.apiSecret, { algorithm: 'HS256' });
     const expiresAt = new Date(Date.now() + validityInSeconds * 1000);
+    
+    console.log(`✅ 令牌生成成功，过期时间: ${expiresAt.toISOString()}`);
     
     return {
       token,

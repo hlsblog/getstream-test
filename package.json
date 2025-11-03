@@ -16,6 +16,7 @@
   "description": "",
   "dependencies": {
     "@stream-io/feeds-client": "^0.3.2",
+    "@stream-io/node-sdk": "^0.7.17",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",

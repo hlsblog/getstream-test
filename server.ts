@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { FeedsClient } from '@stream-io/feeds-client';
 import WebSocket from 'ws';
 import { StreamTokenProvider, TokenManager } from './tokenProvider';
+import net from 'net';
+import { StreamClient } from '@stream-io/node-sdk';
 
 // 加载环境变量
 dotenv.config();
@@ -13,7 +15,36 @@ dotenv.config();
 (global as any).WebSocket = WebSocket;
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const DEFAULT_PORT = parseInt(process.env.PORT || '3000', 10);
+
+// 检查端口是否可用的函数
+function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    
+    server.listen(port, () => {
+      server.once('close', () => {
+        resolve(true);
+      });
+      server.close();
+    });
+    
+    server.on('error', () => {
+      resolve(false);
+    });
+  });
+}
+
+// 查找可用端口的函数
+async function findAvailablePort(startPort: number, maxAttempts: number = 10): Promise<number> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const port = startPort + i;
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error(`无法找到可用端口，已尝试从 ${startPort} 到 ${startPort + maxAttempts - 1}`);
+}
 
 // 中间件
 app.use(cors());
@@ -33,7 +64,8 @@ if (!streamConfig.apiKey || !streamConfig.apiSecret) {
 }
 
 // Stream 客户端和令牌管理器（设置20秒超时）
-const client = new FeedsClient(streamConfig.apiKey, { timeout: 20000 });
+const client = new FeedsClient(streamConfig.apiKey, { timeout: 30000 });
+const streamClient = new StreamClient(streamConfig.apiKey, streamConfig.apiSecret, {timeout: 30000});
 const tokenProvider = new StreamTokenProvider(streamConfig.apiKey, streamConfig.apiSecret);
 const tokenManager = new TokenManager(tokenProvider);
 
@@ -195,8 +227,8 @@ app.post('/api/feeds/user/:userId/post', async (req, res) => {
     
     await connectUser(userId);
     
-    const userFeed = client.feed('user', userId);
-    const activity = await userFeed.addActivity({
+    const activity = await client.addActivity({
+      feeds: [`user:${userId}`, `foryou:${userId}`],
       text,
       type
     });
@@ -337,8 +369,11 @@ app.get('/api/activities/:userId', async (req, res) => {
     
     // 查询全局活动
     const activities = await client.queryActivities(queryParams);
+
+
+    // const forYouFeed = streamClient.feeds.feed('foryou', userId);
+    // const activities = await forYouFeed.getOrCreate({user_id: userId, limit, next, prev});
     
-    console.log('分页信息 - next:', activities.next, 'prev:', activities.prev);
     
     res.json({
       success: true,
@@ -372,6 +407,29 @@ app.get('/api/user/:userId/info', async (req, res) => {
   try {
     const { userId } = req.params;
     
+    // 首先检查用户是否存在
+    try {
+      const userResponse = await streamClient.queryUsers({ 
+        payload: { 
+          filter_conditions: { id: userId } 
+        } 
+      });
+      if (!userResponse.users || userResponse.users.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: '用户不存在',
+          message: `用户 ${userId} 不存在于系统中`
+        });
+      }
+    } catch (userCheckError) {
+      console.error('检查用户存在性失败:', userCheckError);
+      return res.status(404).json({
+        success: false,
+        error: '用户不存在',
+        message: `用户 ${userId} 不存在或已被删除`
+      });
+    }
+    
     await connectUser(userId);
     
     res.json({
@@ -384,6 +442,16 @@ app.get('/api/user/:userId/info', async (req, res) => {
     });
   } catch (error) {
     console.error('获取用户信息失败:', error);
+    
+    // 检查是否是用户不存在的错误
+    if (error instanceof Error && error.message.includes('was deleted')) {
+      return res.status(404).json({
+        success: false,
+        error: '用户不存在',
+        message: `用户不存在或已被删除: ${error.message}`
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: '获取用户信息失败',
@@ -431,6 +499,282 @@ app.post('/api/user/disconnect', async (req, res) => {
 });
 
 /**
+ * 获取所有用户列表
+ */
+app.get('/api/users', async (req, res) => {
+  try {
+    const { limit = 30, offset = 0 } = req.query;
+    
+    // 使用 Stream Node SDK 的 queryUsers 方法
+    const response = await streamClient.queryUsers({
+      payload: {
+        filter_conditions: {},
+        sort: [{ field: 'created_at', direction: -1 }],
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        users: response.users || [],
+        total: response.users?.length || 0,
+        pagination: {
+          limit: parseInt(limit as string),
+          offset: parseInt(offset as string),
+          hasMore: (response.users?.length || 0) === parseInt(limit as string)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('获取用户列表失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '获取用户列表失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 创建新用户
+ */
+app.post('/api/users', async (req, res) => {
+  try {
+    const { id, name, image, role = 'user', custom = {} } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: '用户ID是必需的'
+      });
+    }
+    
+    const newUser = {
+      id,
+      role,
+      name: name || `用户${id}`,
+      image: image || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || id)}&background=random`,
+      custom
+    };
+    
+    const response = await streamClient.upsertUsers([newUser]);
+    
+    console.log(`👤 创建用户成功: ${id}`);
+    
+    res.json({
+      success: true,
+      data: {
+        user: newUser,
+        response: response
+      }
+    });
+  } catch (error) {
+    console.error('创建用户失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '创建用户失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 获取单个用户详情
+ */
+app.get('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const response = await streamClient.queryUsers({
+      payload: {
+        filter_conditions: { id: { $eq: userId } },
+        limit: 1
+      }
+    });
+    
+    if (!response.users || response.users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: '用户不存在'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        user: response.users[0]
+      }
+    });
+  } catch (error) {
+    console.error('获取用户详情失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '获取用户详情失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 更新用户信息
+ */
+app.put('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, image, role, custom = {} } = req.body;
+    
+    // 构建更新数据
+    const updateData: any = { id: userId };
+    if (name !== undefined) updateData.name = name;
+    if (image !== undefined) updateData.image = image;
+    if (role !== undefined) updateData.role = role;
+    if (Object.keys(custom).length > 0) updateData.custom = custom;
+    
+    const response = await streamClient.updateUsersPartial({
+      users: [
+        {
+          id: userId,
+          set: updateData
+        }
+      ]
+    });
+    
+    console.log(`👤 更新用户成功: ${userId}`);
+    
+    res.json({
+      success: true,
+      data: {
+        user: updateData,
+        response: response
+      }
+    });
+  } catch (error) {
+    console.error('更新用户失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '更新用户失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 删除用户
+ */
+app.delete('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { hard_delete = false } = req.query;
+    
+    const response = await streamClient.deleteUsers({
+      user_ids: [userId],
+      user: hard_delete === 'true' ? 'hard' : 'soft'
+    });
+    
+    console.log(`👤 删除用户成功: ${userId} (${hard_delete === 'true' ? '硬删除' : '软删除'})`);
+    
+    res.json({
+      success: true,
+      data: {
+        userId,
+        deleteType: hard_delete === 'true' ? 'hard' : 'soft',
+        response: response
+      }
+    });
+  } catch (error) {
+    console.error('删除用户失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '删除用户失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 更新用户信息
+ */
+app.put('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, image, custom = {} } = req.body;
+    
+    const updatedUser = {
+      id: userId,
+      name,
+      image,
+      custom
+    };
+    
+    // 移除undefined的字段
+    Object.keys(updatedUser).forEach(key => {
+      if (updatedUser[key as keyof typeof updatedUser] === undefined) {
+        delete updatedUser[key as keyof typeof updatedUser];
+      }
+    });
+    
+    const response = await streamClient.updateUsersPartial({
+      users: [{
+        id: userId,
+        set: updatedUser
+      }]
+    });
+    
+    console.log(`👤 更新用户成功: ${userId}`);
+    
+    res.json({
+      success: true,
+      data: {
+        user: updatedUser,
+        response: response
+      }
+    });
+  } catch (error) {
+    console.error('更新用户失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '更新用户失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
+ * 删除用户
+ */
+app.delete('/api/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { hard = false } = req.query;
+    
+    const response = await streamClient.deleteUsers({
+      user_ids: [userId],
+      user: hard === 'true' ? 'hard' : 'soft'
+    });
+    
+    console.log(`🗑️ 删除用户${hard === 'true' ? '(硬删除)' : '(软删除)'}: ${userId}`);
+    
+    res.json({
+      success: true,
+      data: {
+        userId,
+        deleteType: hard === 'true' ? 'hard' : 'soft',
+        response: response
+      }
+    });
+  } catch (error) {
+    console.error('删除用户失败:', error);
+    res.status(500).json({
+      success: false,
+      error: '删除用户失败',
+      message: error instanceof Error ? error.message : '未知错误'
+    });
+  }
+});
+
+/**
  * 关注用户 - 使用Stream SDK原生功能
  */
 app.post('/api/user/:userId/follow/:targetUserId', async (req, res) => {
@@ -447,6 +791,11 @@ app.post('/api/user/:userId/follow/:targetUserId', async (req, res) => {
     await connectUser(userId);
     
     // 使用Stream SDK的关注功能
+    const foryouFollowResult = await client.follow({
+      source: `foryou:${userId}`,
+      target: `user:${targetUserId}`,
+      create_notification_activity: false
+    });
     const followResult = await client.follow({
       source: `user:${userId}`,
       target: `user:${targetUserId}`,
@@ -559,6 +908,9 @@ app.get('/api/user/:userId/following', async (req, res) => {
     
     // 使用Stream SDK查询用户的关注列表
     const followsResult = await client.queryFollows({
+      filter: {
+        source_feed: `user:${userId}`
+      },
       limit: 100 // 可以根据需要调整限制
     });
     
@@ -1327,11 +1679,28 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// 启动服务器的异步函数
+async function startServer() {
+  try {
+    const PORT = await findAvailablePort(DEFAULT_PORT);
+    
+    if (PORT !== DEFAULT_PORT) {
+      console.log(`⚠️  端口 ${DEFAULT_PORT} 被占用，自动切换到端口 ${PORT}`);
+    }
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 服务器运行在 http://localhost:${PORT}`);
+      console.log(`📱 Web界面: http://localhost:${PORT}`);
+      console.log(`🔧 API文档: http://localhost:${PORT}/api`);
+      console.log(`💡 提示: 如需使用其他端口，请在 .env 文件中设置 PORT=端口号`);
+    });
+  } catch (error) {
+    console.error('❌ 启动服务器失败:', error);
+    process.exit(1);
+  }
+}
+
 // 启动服务器
-app.listen(PORT, () => {
-  console.log(`🚀 服务器运行在 http://localhost:${PORT}`);
-  console.log(`📱 Web界面: http://localhost:${PORT}`);
-  console.log(`🔧 API文档: http://localhost:${PORT}/api`);
-});
+startServer();
 
 export default app;
